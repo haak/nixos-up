@@ -87,6 +87,36 @@ def ask_username() -> str:
 username = ask_username()
 print()
 
+def fetch_github_keys(github_username: str) -> list[str]:
+  try:
+    resp = requests.get(f"https://github.com/{github_username}.keys", timeout=10)
+    if resp.status_code != 200:
+      print(f"Could not fetch SSH keys for GitHub user '{github_username}' (HTTP {resp.status_code}).")
+      return []
+    return [k.strip() for k in resp.text.splitlines() if k.strip()]
+  except requests.RequestException as e:
+    print(f"Failed to fetch SSH keys for GitHub user '{github_username}': {e}")
+    return []
+
+def ask_github_username() -> str:
+  sel = input("What is your GitHub username (for SSH authorized keys)? ").strip()
+  if re.fullmatch(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$", sel):
+    return sel
+  print("GitHub usernames can only contain letters, numbers, and hyphens, and cannot begin or end with a hyphen.\n")
+  return ask_github_username()
+
+def ask_github_keys() -> list[str]:
+  github_username = ask_github_username()
+  keys = fetch_github_keys(github_username)
+  if keys:
+    print(f"Fetched {len(keys)} SSH key(s) from GitHub user '{github_username}'.")
+    return keys
+  print("No SSH keys were found for that GitHub user. Please try again.\n")
+  return ask_github_keys()
+
+github_keys = ask_github_keys()
+print()
+
 def ask_password() -> str:
   pw1 = getpass("User password? ")
   pw2 = getpass("And confirm: ")
@@ -269,10 +299,14 @@ os.chmod(f"/mnt{password_file_path}", 600)
 # We do our best here to match against the commented out users block.
 config = re.sub(r" *# Define a user account\..*\n( *# .*\n)+", "\n".join([
   "  users.mutableUsers = false;",
+  "  services.openssh.enable = true;",
   f"  users.users.{username} = {{",
   "    isNormalUser = true;",
   "    extraGroups = [ \"wheel\" \"networkmanager\" ];",
   f"    hashedPasswordFile = \"{password_file_path}\";",
+  "    openssh.authorizedKeys.keys = [",
+  *[f"      \"{key.replace(chr(34), r'\\\"')}\"" for key in github_keys],
+  "    ];",
   "  };",
   "",
   "  # Disable password-based login for root.",

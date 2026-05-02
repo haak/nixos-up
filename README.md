@@ -2,6 +2,8 @@
 
 nixos-up is a dead-simple install wizard for NixOS. It's the fastest way to get from ISO to working installation.
 
+During setup, nixos-up asks for your GitHub username, fetches your public SSH keys from `https://github.com/<username>.keys`, and installs them as authorized keys for your user.
+
 From the NixOS installation USB/CD:
 
 ```
