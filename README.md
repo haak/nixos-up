@@ -7,7 +7,13 @@ During setup, nixos-up asks for your GitHub username, fetches your public SSH ke
 From the NixOS installation USB/CD:
 
 ```
-sudo nix-shell https://github.com/samuela/nixos-up/archive/main.tar.gz
+sudo nix-shell https://github.com/haak/nixos-up/archive/refs/heads/main.tar.gz
+```
+
+For a stable version, create and push a tag, then use:
+
+```
+sudo nix-shell https://github.com/haak/nixos-up/archive/refs/tags/v0.1.0.tar.gz
 ```
 
 You can check out a video demonstrating the process here: https://youtu.be/f7DzbiRD99Q.
